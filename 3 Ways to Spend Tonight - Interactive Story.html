@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3 Ways to Spend Tonight — โป้ & เธม</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Prompt, Sarabun, IBM Plex Sans Thai -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;1,300&family=Sarabun:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+    <!-- Tone.js for gentle ambient sound effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"IBM Plex Sans Thai"', 'sans-serif'],
+                        display: ['"Prompt"', 'sans-serif'],
+                        serif: ['"Sarabun"', 'sans-serif'],
+                    },
+                    colors: {
+                        cream: {
+                            50: '#FDFBF7',
+                            100: '#F9F4E8',
+                            200: '#F1E6CE',
+                        },
+                        twilight: {
+                            50: '#F0F4F8',
+                            100: '#D9E2EC',
+                            200: '#BCCCDC',
+                            600: '#486581',
+                            800: '#243B53',
+                            900: '#102A43',
+                        },
+                        warmgold: {
+                            400: '#F6C453',
+                            500: '#E5A93B',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom subtle animations & editorial aesthetics */
+        body {
+            background-color: #FDFBF7;
+            color: #102A43;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .paper-texture {
+            background-image: radial-gradient(#BCCCDC 0.65px, transparent 0.65px);
+            background-size: 24px 24px;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-up {
+            animation: fadeInUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes pulseSoft {
+            0%, 100% { opacity: 0.4; transform: scale(0.95); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+
+        .typing-dot:nth-child(1) { animation: pulseSoft 1.2s infinite 0s; }
+        .typing-dot:nth-child(2) { animation: pulseSoft 1.2s infinite 0.2s; }
+        .typing-dot:nth-child(3) { animation: pulseSoft 1.2s infinite 0.4s; }
+
+        /* Custom scrollbar for chat box */
+        .chat-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+        .chat-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .chat-scroll::-webkit-scrollbar-thumb {
+            background: #D9E2EC;
+            border-radius: 9999px;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="paper-texture min-h-screen flex flex-col justify-between selection:bg-twilight-100 selection:text-twilight-900">
+
+    <!-- Top Minimal Editorial Navigation Bar -->
+    <header class="sticky top-0 z-40 glass-card border-b border-twilight-100/80 px-4 py-3 sm:px-8">
+        <div class="max-w-3xl mx-auto flex items-center justify-between">
+            <button onclick="goToCover()" class="flex items-center gap-2.5 text-left group focus:outline-none">
+                <span class="w-2.5 h-2.5 rounded-full bg-warmgold-500 group-hover:scale-125 transition-transform"></span>
+                <span class="font-display font-medium text-sm sm:text-base tracking-tight text-twilight-900">
+                    3 Ways to Spend Tonight
+                </span>
+            </button>
+
+            <div class="flex items-center gap-3">
+                <!-- Sound Toggle -->
+                <button id="soundToggleBtn" onclick="toggleSound()" title="เปิด/ปิดเสียงเอฟเฟกต์"
+                    class="p-2 rounded-full text-twilight-600 hover:bg-twilight-50 transition-colors text-xs flex items-center gap-1.5 border border-twilight-100">
+                    <span id="soundIcon">🔇</span>
+                    <span class="hidden sm:inline" id="soundLabel">ปิดเสียง</span>
+                </button>
+
+                <!-- Route Progress Pill -->
+                <button onclick="openCollectionModal()"
+                    class="px-3 py-1.5 rounded-full bg-twilight-900 text-cream-50 font-display text-xs font-medium flex items-center gap-1.5 hover:bg-twilight-800 transition-all shadow-sm">
+                    <span>เส้นทางที่ปลดล็อก</span>
+                    <span id="progressBadge" class="bg-warmgold-400 text-twilight-900 px-1.5 py-0.5 rounded-full font-semibold text-[11px]">0/3</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Interactive Container -->
+    <main class="flex-grow flex flex-col items-center justify-center px-4 py-8 sm:py-12">
+        <div id="appContainer" class="w-full max-w-2xl mx-auto">
+            <!-- Dynamic Screens Rendered Here -->
+        </div>
+    </main>
+
+    <!-- Minimal Footer -->
+    <footer class="py-6 px-4 text-center text-xs text-twilight-600/80 font-sans">
+        <p>Interactive Fiction Prototype • เรื่องราวของ <span class="font-medium text-twilight-800">โป้</span> และ <span class="font-medium text-twilight-800">เธม</span></p>
+        <p class="mt-1 text-[11px] opacity-75">พร้อมสำหรับการนำไปปรับแต่งและโฮสต์บน Cloudflare Pages</p>
+    </footer>
+
+    <!-- Route Collection & Epilogue Modal -->
+    <div id="collectionModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-twilight-900/40 backdrop-blur-sm p-4">
+        <div class="bg-cream-50 border border-twilight-100 rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl animate-fade-up relative">
+            <button onclick="closeCollectionModal()" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-twilight-50 text-twilight-600 hover:bg-twilight-100 flex items-center justify-center text-sm">
+                ✕
+            </button>
+            <div class="text-xs font-display uppercase tracking-widest text-warmgold-500 font-semibold mb-1">Ending Collection</div>
+            <h3 class="font-display text-xl font-semibold text-twilight-900 mb-2">ความทรงจำในคืนนี้</h3>
+            <p class="text-sm text-twilight-600 mb-5 leading-relaxed">
+                ไม่ว่าจะเลือกเก็บความรู้สึกไว้ เดินไปหา หรือเอ่ยปากอ้อนออกไป... ปลายทางของทุกเส้นทางก็ยังคงมีกันและกันเสมอ
+            </p>
+
+            <div id="modalRoutesList" class="space-y-3 mb-6">
+                <!-- Populated dynamically -->
+            </div>
+
+            <div id="secretEpilogueBox" class="hidden rounded-2xl bg-gradient-to-br from-twilight-900 to-twilight-800 text-cream-50 p-5 mb-4 border border-warmgold-400/30">
+                <div class="flex items-center gap-2 text-warmgold-400 text-xs font-display font-medium mb-2">
+                    <span>✦</span> <span>บันทึกพิเศษจากเธม (ปลดล็อกครบ 3 เส้นทาง)</span>
+                </div>
+                <p class="text-sm leading-relaxed text-cream-100 font-light italic">
+                    "ถึงพี่โป้... เธมรู้ว่าพี่ชอบเก็บอะไรไว้คนเดียวเพราะกลัวเธมเหนื่อย แต่สำหรับเธม พี่โป้ไม่ใช่ภาระเลยนะ เป็นคนแรกที่เธมอยากรีบกลับไปกอดทุกวันต่างหาก สุขสันต์วันเกิดนะครับคนเก่งของเธม"
+                </p>
+            </div>
+
+            <button onclick="closeCollectionModal()" class="w-full py-3 rounded-2xl bg-twilight-100/70 hover:bg-twilight-100 text-twilight-900 font-display text-sm font-medium transition-colors">
+                กลับสู่เนื้อเรื่อง
+            </button>
+        </div>
+    </div>
+
+    <!-- Custom Toast / Message Box (No alert() used) -->
+    <div id="toastBox" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 translate-y-3">
+        <div class="bg-twilight-900 text-cream-50 px-4 py-2.5 rounded-full shadow-lg text-xs sm:text-sm font-display flex items-center gap-2">
+            <span class="text-warmgold-400">✦</span>
+            <span id="toastText">ข้อความแจ้งเตือน</span>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. SOUND ENGINE (Tone.js - Gentle UI Chimes)
+        // ==========================================
+        let soundEnabled = false;
+        let synth = null;
+
+        async function toggleSound() {
+            if (!soundEnabled) {
+                try {
+                    await Tone.start();
+                    synth = new Tone.PolySynth(Tone.Synth, {
+                        oscillator: { type: "sine" },
+                        envelope: { attack: 0.02, decay: 0.2, sustain: 0.1, release: 0.8 },
+                        volume: -14
+                    }).toDestination();
+                    soundEnabled = true;
+                    document.getElementById('soundIcon').textContent = '🔊';
+                    document.getElementById('soundLabel').textContent = 'เปิดเสียง';
+                    playChime('C5');
+                    showToast('เปิดเสียงประกอบเบาๆ แล้ว');
+                } catch (e) {
+                    console.warn('Audio init skipped:', e);
+                }
+            } else {
+                soundEnabled = false;
+                document.getElementById('soundIcon').textContent = '🔇';
+                document.getElementById('soundLabel').textContent = 'ปิดเสียง';
+                showToast('ปิดเสียงแล้ว');
+            }
+        }
+
+        function playChime(note = 'E5') {
+            if (!soundEnabled || !synth) return;
+            try {
+                synth.triggerAttackRelease(note, '16n');
+            } catch (e) {}
+        }
+
+        // ==========================================
+        // 2. STORY DATA & BRANCHES (โป้ & เธม)
+        // ==========================================
+        const STORY_DATA = {
+            openingChat: [
+                { sender: 'thame', text: 'พี่โป้ครับ', time: '19:42' },
+                { sender: 'thame', text: 'เธมขอโทษจริงๆ นะ คืนนี้เธมน่าจะไปตามนัดไม่ทันแล้ว', time: '19:43' },
+                { sender: 'thame', text: 'งานที่สตูดิโอแก้กะทันหันเลย โปรดิวเซอร์ฝั่งลูกค้าเพิ่งส่งบรีฟใหม่เข้ามาตอนทุ่มครึ่ง', time: '19:43' },
+                { sender: 'thame', text: 'พี่โป้ไม่ต้องรอทานข้าวนะครับ ทานก่อนได้เลย เดี๋ยวเสร็จแล้วเธมรีบโทรหา', time: '19:44' }
+            ],
+            openingThoughts: [
+                "หน้าจอโทรศัพท์สว่างวาบขึ้นท่ามกลางแสงไฟสีนวลในห้องนั่งเล่นที่เงียบเชียบ",
+                "ในฐานะ 'โปรดิวเซอร์' เหมือนกัน โป้เข้าใจดีที่สุดว่าคำว่า 'งานแก้กะทันหัน' มันหลีกเลี่ยงไม่ได้แค่ไหน... แต่ในฐานะ 'คนรัก' ที่ตั้งใจเคลียร์คิวทั้งคืนเพื่อฉลองวันเกิดด้วยกัน หัวใจมันก็อดวูบโหวงขึ้นมาไม่ได้อยู่ดี",
+                "เค้กก้อนเล็กที่แอบสั่งทำพิเศษยังวางอยู่ในตู้เย็น เทียนวันเกิดที่เตรียมไว้ยังไม่ได้แกะออกจากซอง... โป้มองข้อความของเธมค้างอยู่อย่างนั้น นิ้วโป้งแตะอยู่ที่แป้นพิมพ์ ก่อนจะตัดสินใจทำบางอย่างลงไป"
+            ],
+            routes: {
+                1: {
+                    id: 1,
+                    badge: "เส้นทางที่ 01 • ใจกล้าแบบเงียบๆ",
+                    title: "ไปเซอร์ไพรส์วันเกิดถึงที่",
+                    shortDesc: "กลืนความน้อยใจลงไป คว้าเค้กก้อนเล็กแล้วออกไปหาเธมที่สตูดิโอด้วยตัวเอง",
+                    replyPreview: "“โอเคครับ ตั้งใจทำงานนะ” — ก่อนจะหยิบกุญแจรถและกล่องเค้กเดินออกจากห้อง",
+                    endingTitle: "เทียนเล่มเล็กในสตูดิโอที่เงียบสงบ",
+                    steps: [
+                        {
+                            type: "chat",
+                            messages: [
+                                { sender: 'po', text: 'โอเคครับ เธมตั้งใจทำงานนะ ไม่ต้องห่วงทางนี้', time: '19:46' },
+                                { sender: 'thame', text: 'ขอบคุณนะครับพี่โป้ เดี๋ยวเธมรีบเคลียร์ให้ไวที่สุดเลย', time: '19:47' }
+                            ]
+                        },
+                        {
+                            type: "narration",
+                            speaker: "เสียงในใจของโป้",
+                            text: "โป้ไม่ใช่คนพูดเก่งเวลาอยากอ้อนใคร แต่ถ้าเป็นเรื่องลงมือทำ... โป้ไม่เคยลังเลเลยสักครั้ง เขาเปิดตู้เย็น หยิบกล่องเค้กช็อกโกแลตหน้าเรียบๆ ที่ตั้งใจเลือกเองกับมือ ใส่ถุงผ้าอย่างระมัดระวัง"
+                        },
+                        {
+                            type: "narration",
+                            speaker: "22:15 น. — หน้าห้องอัดสตูดิโอ",
+                            text: "ไฟในโถงทางเดินหรี่ลงจนเกือบมืด เหลือเพียงแสงไฟลอดออกมาจากห้องทำงานของเธม โป้เคาะประตูเบาๆ สองครั้ง ก่อนจะแง้มประตูเข้าไปพร้อมรอยยิ้มบางๆ"
+                        },
+                        {
+                            type: "dialogue",
+                            speaker: "เธม",
+                            quote: "“หือ... พี่โป้?! มาได้ยังไงครับเนี่ย ดึกขนาดนี้แล้ว”",
+                            subtext: "เธมชะงักมือจากคีย์บอร์ด ดวงตาที่เคยดูเหนื่อยล้าเบิกกว้างขึ้นด้วยความตกใจปนดีใจสุดขีด"
+                        },
+                        {
+                            type: "dialogue",
+                            speaker: "โป้",
+                            quote: "“ก็เห็นว่าคนแถวนี้กลับไปเป่าเค้กที่ห้องไม่ทัน... โปรดิวเซอร์อย่างพี่เลยต้องหอบเค้กมาส่งถึงที่แทนไงครับ สุขสันต์วันเกิดนะเธม”",
+                            subtext: "โป้วางกล่องเค้กลงบนโต๊ะข้างมิกเซอร์ ใบหูขึ้นสีแดงจางๆ เพราะเขินคำพูดตัวเอง"
+                        },
+                        {
+                            type: "narration",
+                            speaker: "บทสรุปของคืนนี้",
+                            text: "เธมลุกขึ้นมารวบตัวโป้เข้าไปกอดแน่นจนจมอก กลิ่นกาแฟจางๆ ผสมกับความอบอุ่นของคนรักทำให้ความน้อยใจก่อนหน้านี้ละลายหายไปจนหมด แม้จะเป็นวันเกิดที่ไม่มีโต๊ะอาหารหรูหรา แต่แสงเทียนเล่มเดียวในสตูดิโอคืนนี้กลับสว่างและอบอุ่นที่สุดในความทรงจำของทั้งคู่"
+                        }
+                    ]
+                },
+                2: {
+                    id: 2,
+                    badge: "เส้นทางที่ 02 • เก็บความรู้สึกเก่ง",
+                    title: "ตอบสั้นๆ ว่า 'งั้นเหรอ' แล้วเก็บความน้อยใจไว้",
+                    shortDesc: "ไม่อยากกวนเวลาทำงานของเธม เลยเลือกตอบเรียบๆ และรออยู่เงียบๆ จนเธมสังเกตเห็น",
+                    replyPreview: "“งั้นเหรอ โอเคครับ” — สั้นจนคนอ่านสัมผัสได้ถึงความเงียบที่ซ่อนอยู่",
+                    endingTitle: "อ้อมกอดตอนเที่ยงคืนที่รีบกลับมา",
+                    steps: [
+                        {
+                            type: "chat",
+                            messages: [
+                                { sender: 'po', text: 'งั้นเหรอ', time: '19:46' },
+                                { sender: 'po', text: 'โอเคครับ เธมทำงานเถอะ พี่ไม่กวนแล้ว', time: '19:46' },
+                                { sender: 'thame', text: 'พี่โป้...', time: '19:48' },
+                                { sender: 'thame', text: 'พี่โป้โกรธเธมหรือเปล่าครับ?', time: '19:48' },
+                                { sender: 'po', text: 'เปล่าครับ พี่เข้าใจงาน', time: '19:50' }
+                            ]
+                        },
+                        {
+                            type: "narration",
+                            speaker: "เสียงในใจของโป้",
+                            text: "โป้วางโทรศัพท์คว่ำหน้าลงบนโซฟา ถอนหายใจออกมาเบาๆ เขาไม่ได้โกรธเธมเลยสักนิด แค่เสียใจเล็กๆ ที่ความตั้งใจตลอดทั้งสัปดาห์ต้องพับเก็บไป แต่เขาก็ไม่อยากให้เธมเสียสมาธิทำงานเพราะความงอแงของตัวเอง"
+                        },
+                        {
+                            type: "narration",
+                            speaker: "23:40 น. — เสียงไขกุญแจหน้าห้อง",
+                            text: "โป้เผลอหลับไปบนโซฟาทั้งที่ไฟทีวียังเปิดอยู่ เสียงประตูห้องเปิดออกอย่างเบามือ พร้อมเสียงฝีเท้าที่รีบเดินเข้ามาใกล้ โป้ปรือตาตื่นขึ้นมาเห็นเธมยืนหอบหายใจน้อยๆ อยู่ในชุดทำงานตัวเดิม"
+                        },
+                        {
+                            type: "dialogue",
+                            speaker: "เธม",
+                            quote: "“เธมขอโทษครับพี่โป้... พอเห็นพี่ตอบสั้นๆ แบบนั้น เธมรู้เลยว่าพี่กำลังน้อยใจอยู่แน่ๆ เธมเลยรีบเร่งปั่นงานส่วนที่เหลือให้จบแล้วรีบขับรถกลับมาเลย”",
+                            subtext: "เธมนั่งคุกเข่าลงข้างโซฟา มืออุ่นเอื้อมมาลูบแก้มโป้อย่างทะนุถนอม"
+                        },
+                        {
+                            type: "dialogue",
+                            speaker: "โป้",
+                            quote: "“ก็ไม่ได้โกรธสักหน่อย... แค่เสียดายเฉยๆ เอง อุตส่าห์จองร้านไว้ตั้งนาน”",
+                            subtext: "โป้หลบสายตา พึมพำเสียงเบาเหมือนเด็กที่ถูกจับได้"
+                        },
+                        {
+                            type: "narration",
+                            speaker: "บทสรุปของคืนนี้",
+                            text: "เธมยิ้มเอ็นดู ก่อนจะโน้มตัวลงมากอดโป้ไว้แน่นบนโซฟาตัวนั้น เธมสัญญาว่าจะชดเชยให้ทุกอย่างในวันพรุ่งนี้ แต่สำหรับโป้ แค่การที่เธมใส่ใจในความเงียบของเขาเสมอ... ก็เป็นของขวัญที่ดีที่สุดแล้ว"
+                        }
+                    ]
+                },
+                3: {
+                    id: 3,
+                    badge: "เส้นทางที่ 03 • ลองซื่อสัตย์กับหัวใจ",
+                    title: "อ้อนว่ารีบทำงานให้เสร็จแล้วกลับมาฉลองกัน",
+                    shortDesc: "รวบรวมความกล้าพิมพ์ความรู้สึกออกไปตรงๆ ว่าคิดถึงและอยากรอฉลองด้วยกัน",
+                    replyPreview: "“รีบทำงานให้เสร็จนะ พี่จะรอฉลองด้วยกัน ดึกแค่ไหนก็รอครับ”",
+                    endingTitle: "ปาร์ตี้เที่ยงคืนของเราสองคน",
+                    steps: [
+                        {
+                            type: "chat",
+                            messages: [
+                                { sender: 'po', text: 'จริงๆ แอบเสียดายนะ พี่ตั้งใจรอวันนี้มากเลย', time: '19:47' },
+                                { sender: 'po', text: 'แต่ไม่เป็นไรครับ เธมรีบทำงานให้เสร็จนะ แล้วรีบกลับมาฉลองกัน ดึกแค่ไหนพี่ก็รอ', time: '19:47' },
+                                { sender: 'thame', text: 'พี่โป้... น่ารักขนาดนี้เธมจะเอาสมาธิที่ไหนทำงานครับเนี่ย', time: '19:48' },
+                                { sender: 'thame', text: 'รอเธมนะครับ เธมจะรีบเคลียร์ให้เสร็จภายในสี่ทุ่มครึ่งเลย สัญญา!', time: '19:49' }
+                            ]
+                        },
+                        {
+                            type: "narration",
+                            speaker: "เสียงในใจของโป้",
+                            text: "พอกดส่งข้อความออกไปแล้ว โป้ก็ซุกหน้าลงกับหมอนอิงด้วยความเขิน ปกติเขาไม่ค่อยกล้าพูดอะไรแบบนี้ตรงๆ แต่พอเห็นข้อความตอบกลับที่เต็มไปด้วยพลังของเธม โป้ก็รู้ทันทีว่าคิดถูกแล้วที่ยอมเปิดใจบอกออกไป"
+                        },
+                        {
+                            type: "narration",
+                            speaker: "22:55 น. — โต๊ะอาหารกลางห้องนั่งเล่น",
+                            text: "เธมกลับมาถึงห้องตรงเวลาเป๊ะพร้อมช่อดอกไม้เล็กๆ ที่แวะซื้อระหว่างทาง โป้จัดจานอาหารง่ายๆ ที่อุ่นร้อนใหม่ๆ คู่กับเค้กก้อนโปรดไว้รออยู่แล้ว"
+                        },
+                        {
+                            type: "dialogue",
+                            speaker: "เธม",
+                            quote: "“ขอบคุณที่รอเธมนะครับพี่โป้ ตอนทำงานอยู่พอคิดว่ามีพี่รออยู่ที่ห้อง เธมมีแรงปั่นงานเสร็จไวกว่าปกติตั้งชั่วโมงแน่ะ”",
+                            subtext: "เธมยิ้มกว้างจนตาหยี ก่อนจะยื่นช่อดอกไม้ให้คนตรงหน้า"
+                        },
+                        {
+                            type: "dialogue",
+                            speaker: "โป้",
+                            quote: "“ก็เพราะเป็นเธมไง พี่ถึงยอมรอ... มาเป่าเค้กกันเถอะ เดี๋ยวเทียนละลายหมด”",
+                            subtext: "โป้ยิ้มละมุน ดวงตาเป็นประกายสะท้อนแสงเทียนตรงหน้า"
+                        },
+                        {
+                            type: "narration",
+                            speaker: "บทสรุปของคืนนี้",
+                            text: "เสียงหัวเราะเบาๆ คลอไปกับเพลงโปรดที่เปิดคลอในห้องนั่งเล่น คืนนี้สอนให้โปรดิวเซอร์ขี้น้อยใจอย่างโป้ได้รู้ว่า บางครั้งการเอ่ยปากบอกความต้องการของตัวเองออกไปตรงๆ ก็ไม่ได้น่ากลัวอย่างที่คิด... ยิ่งถ้าคนฟังคือเธม"
+                        }
+                    ]
+                }
+            }
+        };
+
+        // ==========================================
+        // 3. STATE MANAGEMENT
+        // ==========================================
+        let state = {
+            view: 'cover', // 'cover' | 'opening' | 'route'
+            openingStep: 0,
+            currentRouteId: null,
+            routeStep: 0,
+            unlockedRoutes: JSON.parse(localStorage.getItem('po_thame_unlocked') || '[]')
+        };
+
+        function saveUnlocked(routeId) {
+            if (!state.unlockedRoutes.includes(routeId)) {
+                state.unlockedRoutes.push(routeId);
+                localStorage.setItem('po_thame_unlocked', JSON.stringify(state.unlockedRoutes));
+                updateProgressBadge();
+                if (state.unlockedRoutes.length === 3) {
+                    showToast('ปลดล็อกครบทั้ง 3 เส้นทางแล้ว! เปิดดูบันทึกพิเศษได้เลย');
+                } else {
+                    showToast(`ปลดล็อกเส้นทางที่ ${routeId} เรียบร้อยแล้ว`);
+                }
+            }
+        }
+
+        function updateProgressBadge() {
+            const badge = document.getElementById('progressBadge');
+            if (badge) {
+                badge.textContent = `${state.unlockedRoutes.length}/3`;
+            }
+        }
+
+        function showToast(msg) {
+            const box = document.getElementById('toastBox');
+            const text = document.getElementById('toastText');
+            text.textContent = msg;
+            box.classList.remove('opacity-0', 'translate-y-3');
+            box.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                box.classList.remove('opacity-100', 'translate-y-0');
+                box.classList.add('opacity-0', 'translate-y-3');
+            }, 3000);
+        }
+
+        // ==========================================
+        // 4. NAVIGATION & RENDERING
+        // ==========================================
+        function goToCover() {
+            playChime('C5');
+            state.view = 'cover';
+            render();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function startStory() {
+            playChime('E5');
+            state.view = 'opening';
+            state.openingStep = 0;
+            render();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function advanceOpening() {
+            playChime('G5');
+            if (state.openingStep < STORY_DATA.openingThoughts.length) {
+                state.openingStep++;
+                render();
+            }
+        }
+
+        function selectRoute(routeId) {
+            playChime('A5');
+            state.view = 'route';
+            state.currentRouteId = routeId;
+            state.routeStep = 0;
+            render();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function advanceRouteStep() {
+            const route = STORY_DATA.routes[state.currentRouteId];
+            playChime('E5');
+            if (state.routeStep < route.steps.length - 1) {
+                state.routeStep++;
+                render();
+                if (state.routeStep === route.steps.length - 1) {
+                    saveUnlocked(route.id);
+                }
+            }
+        }
+
+        function backToCrossroads() {
+            playChime('D5');
+            state.view = 'opening';
+            state.openingStep = STORY_DATA.openingThoughts.length;
+            render();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ==========================================
+        // 5. VIEW TEMPLATES
+        // ==========================================
+        function render() {
+            const container = document.getElementById('appContainer');
+            if (state.view === 'cover') {
+                container.innerHTML = renderCoverView();
+            } else if (state.view === 'opening') {
+                container.innerHTML = renderOpeningView();
+            } else if (state.view === 'route') {
+                container.innerHTML = renderRouteView();
+            }
+        }
+
+        function renderCoverView() {
+            return `
+                <section class="animate-fade-up text-center space-y-8 py-4 sm:py-8">
+                    <!-- Editorial Tag -->
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cream-100 border border-cream-200 text-twilight-800 text-xs font-display tracking-wide">
+                        <span>✦</span>
+                        <span>INTERACTIVE ROMANTIC FICTION</span>
+                    </div>
+
+                    <!-- Main Title -->
+                    <div class="space-y-3">
+                        <h1 class="font-display text-3xl sm:text-5xl font-semibold text-twilight-900 tracking-tight leading-tight">
+                            3 Ways to Spend Tonight
+                        </h1>
+                        <p class="font-display text-base sm:text-lg text-twilight-600 font-light">
+                            สามวิธีที่ <span class="text-twilight-900 font-medium underline decoration-warmgold-400 decoration-2 underline-offset-4">โป้</span> เลือกใช้ ในคืนที่ <span class="text-twilight-900 font-medium underline decoration-twilight-200 decoration-2 underline-offset-4">เธม</span> ติดงานกะทันหัน
+                        </p>
+                    </div>
+
+                    <!-- Character Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left max-w-xl mx-auto pt-2">
+                        <!-- Po Card -->
+                        <div class="bg-white/90 border border-twilight-100 rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-11 h-11 rounded-2xl bg-cream-100 border border-cream-200 flex items-center justify-center text-xl">
+                                    🎧
+                                </div>
+                                <div>
+                                    <div class="text-[11px] font-display uppercase tracking-wider text-warmgold-500 font-semibold">ตัวละครของคุณ</div>
+                                    <h2 class="font-display font-semibold text-twilight-900 text-base">โป้ (Po)</h2>
+                                </div>
+                            </div>
+                            <p class="text-xs sm:text-sm text-twilight-600 leading-relaxed">
+                                โปรดิวเซอร์หนุ่มนิสัยอ่อนโยน ขี้น้อยใจเก่งแต่ไม่ค่อยกล้าพูดความรู้สึกตรงๆ ทว่าถ้าตัดสินใจจะทำอะไรแล้วก็ใจกล้ากว่าที่ใครคิด
+                            </p>
+                        </div>
+
+                        <!-- Thame Card -->
+                        <div class="bg-white/90 border border-twilight-100 rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-11 h-11 rounded-2xl bg-twilight-50 border border-twilight-100 flex items-center justify-center text-xl">
+                                    🎹
+                                </div>
+                                <div>
+                                    <div class="text-[11px] font-display uppercase tracking-wider text-twilight-600 font-semibold">คนรักของคุณ</div>
+                                    <h2 class="font-display font-semibold text-twilight-900 text-base">เธม (Thame)</h2>
+                                </div>
+                            </div>
+                            <p class="text-xs sm:text-sm text-twilight-600 leading-relaxed">
+                                แฟนหนุ่มที่รักและใส่ใจโป้เสมอ แม้คืนนี้จะติดงานแก้กะทันหันจนไปตามนัดฉลองวันเกิดไม่ทัน แต่หัวใจยังอยู่ที่ห้องเสมอ
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Premise Box -->
+                    <div class="max-w-lg mx-auto bg-cream-100/70 border border-cream-200 rounded-2xl p-4 sm:p-5 text-xs sm:text-sm text-twilight-800 leading-relaxed font-serif">
+                        “ในความสัมพันธ์ที่คบกันมานาน ความเข้าใจมักมาพร้อมกับความเกรงใจ... เมื่อข้อความขอโทษจากเธมเด้งขึ้นมาในคืนสำคัญ โป้จะเลือกจัดการกับความรู้สึกตัวเองอย่างไร?”
+                    </div>
+
+                    <!-- CTA Button -->
+                    <div class="pt-2">
+                        <button onclick="startStory()"
+                            class="group inline-flex items-center gap-3 px-8 py-4 rounded-full bg-twilight-900 hover:bg-twilight-800 text-cream-50 font-display text-sm sm:text-base font-medium shadow-lg shadow-twilight-900/15 transition-all hover:-translate-y-0.5 active:translate-y-0">
+                            <span>เปิดอ่านข้อความในคืนนี้</span>
+                            <span class="group-hover:translate-x-1 transition-transform">→</span>
+                        </button>
+                    </div>
+                </section>
+            `;
+        }
+
+        function renderOpeningView() {
+            const thoughts = STORY_DATA.openingThoughts;
+            const visibleThoughts = thoughts.slice(0, state.openingStep);
+            const isAtCrossroads = state.openingStep >= thoughts.length;
+
+            return `
+                <section class="animate-fade-up space-y-6">
+                    <!-- Scene Header -->
+                    <div class="flex items-center justify-between border-b border-twilight-100 pb-3">
+                        <div>
+                            <span class="text-[11px] font-display uppercase tracking-widest text-warmgold-500 font-semibold">Prologue • 19:44 น.</span>
+                            <h2 class="font-display text-lg sm:text-xl font-semibold text-twilight-900">ข้อความที่เด้งขึ้นมาในคืนนัดสำคัญ</h2>
+                        </div>
+                        <span class="text-xs text-twilight-600 bg-white px-3 py-1 rounded-full border border-twilight-100">ห้องนั่งเล่น</span>
+                    </div>
+
+                    <!-- Simulated Smartphone Chat Window -->
+                    <div class="bg-white border border-twilight-100 rounded-3xl shadow-sm overflow-hidden max-w-md mx-auto">
+                        <!-- Phone Top Bar -->
+                        <div class="bg-twilight-900 text-cream-50 px-4 py-3 flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-full bg-twilight-600 flex items-center justify-center text-sm font-display font-semibold">
+                                    ธ
+                                </div>
+                                <div>
+                                    <div class="text-sm font-display font-medium leading-none">เธม (Thame)</div>
+                                    <div class="text-[10px] text-twilight-200 mt-1 flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                        <span>อยู่ที่สตูดิโอ</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="text-[11px] text-twilight-200 font-sans">19:44</span>
+                        </div>
+
+                        <!-- Chat Messages Area -->
+                        <div class="p-4 space-y-3 bg-twilight-50/40">
+                            ${STORY_DATA.openingChat.map(msg => `
+                                <div class="flex flex-col items-start max-w-[85%]">
+                                    <div class="bg-white border border-twilight-100 text-twilight-900 px-3.5 py-2.5 rounded-2xl rounded-tl-sm text-xs sm:text-sm shadow-xs leading-relaxed">
+                                        ${msg.text}
+                                    </div>
+                                    <span class="text-[10px] text-twilight-600/70 mt-1 ml-1">${msg.time}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Inner Monologue Boxes (Progressive Reveal) -->
+                    <div class="space-y-3 max-w-xl mx-auto">
+                        ${visibleThoughts.map((t, idx) => `
+                            <div class="animate-fade-up bg-cream-100/90 border border-cream-200 rounded-2xl p-4 sm:p-5 text-xs sm:text-sm text-twilight-900 leading-relaxed font-serif shadow-2xs">
+                                <div class="text-[11px] font-display text-twilight-600 mb-1 flex items-center gap-1.5">
+                                    <span>💭</span>
+                                    <span>ความคิดของโป้ (${idx + 1}/${thoughts.length})</span>
+                                </div>
+                                <p>${t}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- Continue Reading or Show 3 Choices -->
+                    ${!isAtCrossroads ? `
+                        <div class="text-center pt-2">
+                            <button onclick="advanceOpening()"
+                                class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white hover:bg-cream-100 text-twilight-900 border border-twilight-200 font-display text-xs sm:text-sm font-medium shadow-xs transition-all">
+                                <span>${state.openingStep === 0 ? 'อ่านความรู้สึกในใจของโป้' : 'อ่านต่อ'}</span>
+                                <span>↓</span>
+                            </button>
+                        </div>
+                    ` : `
+                        <div class="animate-fade-up pt-4 space-y-4">
+                            <div class="text-center space-y-1">
+                                <span class="text-xs font-display uppercase tracking-widest text-warmgold-500 font-semibold">Crossroads</span>
+                                <h3 class="font-display text-lg sm:text-xl font-semibold text-twilight-900">โป้จะเลือกทำอย่างไรในคืนนี้?</h3>
+                                <p class="text-xs text-twilight-600">เลือก 1 ใน 3 เส้นทางเพื่อดูเรื่องราวที่เกิดขึ้นต่อไป</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-3.5">
+                                ${[1, 2, 3].map(id => {
+                                    const r = STORY_DATA.routes[id];
+                                    const unlocked = state.unlockedRoutes.includes(id);
+                                    return `
+                                        <button onclick="selectRoute(${id})"
+                                            class="text-left group bg-white hover:bg-cream-50 border ${unlocked ? 'border-warmgold-400/70' : 'border-twilight-100'} hover:border-twilight-800 rounded-3xl p-5 transition-all shadow-xs hover:shadow-md relative overflow-hidden">
+                                            <div class="flex items-center justify-between gap-2 mb-1.5">
+                                                <span class="text-[11px] font-display font-medium text-twilight-600">${r.badge}</span>
+                                                ${unlocked
+                                                    ? `<span class="text-[11px] font-display bg-warmgold-400/20 text-twilight-900 px-2.5 py-0.5 rounded-full font-medium">✓ อ่านแล้ว</span>`
+                                                    : `<span class="text-[11px] font-display text-twilight-600 group-hover:translate-x-1 transition-transform">เลือกเส้นทางนี้ →</span>`
+                                                }
+                                            </div>
+                                            <h4 class="font-display text-base sm:text-lg font-semibold text-twilight-900 group-hover:text-twilight-800 mb-1">
+                                                ${id}. ${r.title}
+                                            </h4>
+                                            <p class="text-xs sm:text-sm text-twilight-600 leading-relaxed mb-2.5">
+                                                ${r.shortDesc}
+                                            </p>
+                                            <div class="text-[11px] sm:text-xs bg-twilight-50/70 text-twilight-800 px-3 py-2 rounded-xl font-sans border border-twilight-100/60">
+                                                ${r.replyPreview}
+                                            </div>
+                                        </button>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `}
+                </section>
+            `;
+        }
+
+        function renderRouteView() {
+            const route = STORY_DATA.routes[state.currentRouteId];
+            const visibleSteps = route.steps.slice(0, state.routeStep + 1);
+            const isFinished = state.routeStep >= route.steps.length - 1;
+
+            return `
+                <section class="animate-fade-up space-y-6">
+                    <!-- Route Top Navigation -->
+                    <div class="flex items-center justify-between gap-2 border-b border-twilight-100 pb-3">
+                        <button onclick="backToCrossroads()" class="text-xs font-display text-twilight-600 hover:text-twilight-900 flex items-center gap-1">
+                            <span>←</span>
+                            <span>เปลี่ยนเส้นทาง</span>
+                        </button>
+                        <span class="text-[11px] font-display font-medium text-warmgold-500">${route.badge}</span>
+                    </div>
+
+                    <!-- Route Title -->
+                    <div class="text-center space-y-1">
+                        <h2 class="font-display text-xl sm:text-2xl font-semibold text-twilight-900">${route.title}</h2>
+                        <p class="text-xs text-twilight-600">กดปุ่มด้านล่างเพื่ออ่านเหตุการณ์ทีละช่วง</p>
+                    </div>
+
+                    <!-- Story Timeline -->
+                    <div class="space-y-4">
+                        ${visibleSteps.map((step, index) => {
+                            if (step.type === 'chat') {
+                                return `
+                                    <div class="animate-fade-up bg-white border border-twilight-100 rounded-3xl p-4 sm:p-5 max-w-md mx-auto shadow-2xs space-y-3">
+                                        <div class="text-[11px] font-display text-twilight-600 text-center pb-1 border-b border-twilight-50">
+                                            หน้าต่างแชท • โป้ & เธม
+                                        </div>
+                                        ${step.messages.map(m => {
+                                            const isPo = m.sender === 'po';
+                                            return `
+                                                <div class="flex flex-col ${isPo ? 'items-end' : 'items-start'}">
+                                                    <div class="${isPo
+                                                        ? 'bg-twilight-900 text-cream-50 rounded-2xl rounded-tr-sm'
+                                                        : 'bg-twilight-50 text-twilight-900 border border-twilight-100 rounded-2xl rounded-tl-sm'} px-3.5 py-2.5 text-xs sm:text-sm max-w-[85%] leading-relaxed">
+                                                        ${m.text}
+                                                    </div>
+                                                    <span class="text-[10px] text-twilight-600/70 mt-1 mx-1">${isPo ? 'โป้' : 'เธม'} • ${m.time}</span>
+                                                </div>
+                                            `;
+                                        }).join('')}
+                                    </div>
+                                `;
+                            } else if (step.type === 'dialogue') {
+                                const isPo = step.speaker === 'โป้';
+                                return `
+                                    <div class="animate-fade-up bg-white border ${isPo ? 'border-cream-200' : 'border-twilight-100'} rounded-3xl p-5 shadow-2xs">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-display font-semibold ${isPo ? 'bg-cream-100 text-twilight-900' : 'bg-twilight-900 text-cream-50'}">
+                                                ${step.speaker}
+                                            </span>
+                                        </div>
+                                        <p class="font-display text-sm sm:text-base font-medium text-twilight-900 leading-relaxed mb-2">
+                                            ${step.quote}
+                                        </p>
+                                        <p class="text-xs text-twilight-600 font-serif italic">
+                                            ${step.subtext}
+                                        </p>
+                                    </div>
+                                `;
+                            } else {
+                                return `
+                                    <div class="animate-fade-up bg-cream-100/80 border border-cream-200 rounded-2xl p-4 sm:p-5 text-xs sm:text-sm text-twilight-900 leading-relaxed font-serif">
+                                        <div class="text-[11px] font-display font-medium text-twilight-600 mb-1.5">
+                                            ${step.speaker}
+                                        </div>
+                                        <p>${step.text}</p>
+                                    </div>
+                                `;
+                            }
+                        }).join('')}
+                    </div>
+
+                    <!-- Next Step Button or Ending Card -->
+                    ${!isFinished ? `
+                        <div class="text-center pt-2">
+                            <button onclick="advanceRouteStep()"
+                                class="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-twilight-900 hover:bg-twilight-800 text-cream-50 font-display text-xs sm:text-sm font-medium shadow-md transition-all">
+                                <span>ดำเนินเรื่องต่อ (${state.routeStep + 1}/${route.steps.length})</span>
+                                <span>↓</span>
+                            </button>
+                        </div>
+                    ` : `
+                        <div class="animate-fade-up bg-gradient-to-br from-twilight-900 to-twilight-800 text-cream-50 rounded-3xl p-6 sm:p-7 text-center space-y-4 shadow-xl border border-warmgold-400/30 mt-6">
+                            <div class="inline-block px-3 py-1 rounded-full bg-warmgold-400/20 text-warmgold-400 text-[11px] font-display font-semibold tracking-wider">
+                                ENDING UNLOCKED • ฉากจบเส้นทางที่ ${route.id}
+                            </div>
+                            <h3 class="font-display text-xl sm:text-2xl font-semibold text-white">
+                                “${route.endingTitle}”
+                            </h3>
+                            <p class="text-xs sm:text-sm text-twilight-100 max-w-md mx-auto leading-relaxed font-light">
+                                คุณได้สัมผัสหนึ่งวิธีที่โป้เลือกใช้ในคืนนี้แล้ว ลองย้อนกลับไปดูอีกสองทางเลือกที่เหลือเพื่อปลดล็อกบันทึกพิเศษจากเธมกันนะ
+                            </p>
+                            <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                                <button onclick="backToCrossroads()"
+                                    class="w-full sm:w-auto px-6 py-3 rounded-full bg-warmgold-400 hover:bg-warmgold-500 text-twilight-900 font-display text-xs sm:text-sm font-semibold transition-colors">
+                                    เลือกเส้นทางอื่น (${state.unlockedRoutes.length}/3)
+                                </button>
+                                <button onclick="openCollectionModal()"
+                                    class="w-full sm:w-auto px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-cream-50 font-display text-xs sm:text-sm font-medium transition-colors">
+                                    ดูสมุดบันทึกฉากจบ
+                                </button>
+                            </div>
+                        </div>
+                    `}
+                </section>
+            `;
+        }
+
+        // ==========================================
+        // 6. COLLECTION MODAL LOGIC
+        // ==========================================
+        function openCollectionModal() {
+            playChime('F5');
+            const modal = document.getElementById('collectionModal');
+            const list = document.getElementById('modalRoutesList');
+            const epilogue = document.getElementById('secretEpilogueBox');
+
+            list.innerHTML = [1, 2, 3].map(id => {
+                const r = STORY_DATA.routes[id];
+                const isUnlocked = state.unlockedRoutes.includes(id);
+                return `
+                    <div class="flex items-center justify-between p-3.5 rounded-2xl border ${isUnlocked ? 'bg-white border-warmgold-400/60' : 'bg-twilight-50/50 border-twilight-100 opacity-75'}">
+                        <div>
+                            <div class="text-[11px] font-display text-twilight-600">เส้นทางที่ 0${id}</div>
+                            <div class="text-xs sm:text-sm font-display font-medium text-twilight-900">
+                                ${isUnlocked ? r.endingTitle : 'ยังไม่ได้ปลดล็อก'}
+                            </div>
+                        </div>
+                        <button onclick="closeCollectionModal(); selectRoute(${id});"
+                            class="px-3 py-1.5 rounded-full text-xs font-display font-medium ${isUnlocked ? 'bg-cream-100 text-twilight-900 hover:bg-cream-200' : 'bg-twilight-900 text-cream-50 hover:bg-twilight-800'}">
+                            ${isUnlocked ? 'อ่านอีกครั้ง' : 'เล่นเลย'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
+            if (state.unlockedRoutes.length === 3) {
+                epilogue.classList.remove('hidden');
+            } else {
+                epilogue.classList.add('hidden');
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeCollectionModal() {
+            const modal = document.getElementById('collectionModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // Initialize app on load
+        window.addEventListener('DOMContentLoaded', () => {
+            updateProgressBadge();
+            render();
+        });
+    </script>
+</body>
+</html>
